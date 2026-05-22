@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { TokenManager } from '../../packages/gr-client/src/auth.js';
+import { TokenManager } from '../auth.js';
 
 describe('TokenManager', () => {
   let manager: TokenManager;

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GrClient } from '../../packages/gr-client/src/client.js';
-import { TokenManager } from '../../packages/gr-client/src/auth.js';
+import { GrClient } from '../client.js';
+import { TokenManager } from '../auth.js';
 
 describe('GrClient', () => {
   let client: GrClient;
