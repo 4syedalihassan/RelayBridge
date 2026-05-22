@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import {
   type DiscordMessageEvent,
   type DiscordMessageEditEvent,
@@ -16,13 +17,26 @@ import { ArchiveQueue } from './queue.js';
 export class EventRouter {
   private grClient: GrClient;
   private queue: ArchiveQueue;
+  private prisma: PrismaClient;
 
-  constructor(grClient: GrClient, queue: ArchiveQueue) {
+  constructor(grClient: GrClient, queue: ArchiveQueue, prisma: PrismaClient) {
     this.grClient = grClient;
     this.queue = queue;
+    this.prisma = prisma;
+  }
+
+  private async isChannelArchived(channelId: string): Promise<boolean> {
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+      include: { server: true },
+    });
+    if (!channel) return false;
+    return channel.archivingEnabled && channel.server.archivingEnabled;
   }
 
   async handleMessage(event: DiscordMessageEvent, serverName: string, channelName: string): Promise<void> {
+    if (!(await this.isChannelArchived(event.channelId))) return;
+
     const request = toMessageArchiveRequest(event, serverName, channelName);
     this.enqueueArchive(request, event.messageId);
 
@@ -33,11 +47,15 @@ export class EventRouter {
   }
 
   async handleEdit(event: DiscordMessageEditEvent, serverName: string, channelName: string): Promise<void> {
+    if (!(await this.isChannelArchived(event.channelId))) return;
+
     const request = toEditArchiveRequest(event, serverName, channelName);
     this.enqueueArchive(request, event.messageId);
   }
 
   async handleReaction(event: DiscordReactionEvent, serverName: string, channelName: string): Promise<void> {
+    if (!(await this.isChannelArchived(event.channelId))) return;
+
     const request = toReactionArchiveRequest(event, serverName, channelName);
     this.enqueueArchive(request, `${event.messageId}-reaction`);
   }
