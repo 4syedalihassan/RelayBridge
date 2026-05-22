@@ -1,0 +1,4 @@
+- generic [ref=e3]:
+  - heading "Discord → Global Relay" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Archive your Discord messages to Global Relay for compliance and recordkeeping.
+  - button "Sign in with Discord" [ref=e6] [cursor=pointer]

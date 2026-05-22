@@ -1,12 +1,12 @@
 {
-  "active_plan": ".sisyphus/plans/connector-management.md",
-  "started_at": "2026-05-22T16:29:54.621Z",
-  "session_id": "ses_1b041f8b1ffeC3aVKcpFqRban1",
-  "plan_name": "connector-management",
+  "active_plan": "D:\\Projects\\DiscordToGlobalRelay\\.sisyphus\\plans\\tauri-desktop-app.md",
+  "started_at": "2026-05-22T18:56:28.391Z",
   "session_ids": [
     "ses_1b041f8b1ffeC3aVKcpFqRban1"
   ],
-  "session_origins": {},
-  "task_sessions": {},
+  "session_origins": {
+    "ses_1b041f8b1ffeC3aVKcpFqRban1": "direct"
+  },
+  "plan_name": "tauri-desktop-app",
   "agent": "sisyphus"
 }

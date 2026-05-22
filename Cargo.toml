@@ -1,0 +1,66 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/bridge-core",
+    "crates/discord-bot",
+    "crates/gr-client",
+    "crates/bridge",
+    "crates/database",
+    "src-tauri",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/your-org/discord-to-global-relay"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "migrate"] }
+
+# Security
+zeroize = { version = "1", features = ["serde"] }
+aes-gcm = "0.10"
+keyring = "3"
+
+# Discord
+serenity = "0.12"
+
+# UUID
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Chrono
+chrono = { version = "0.4", features = ["serde"] }
+
+# Async trait support
+async-trait = "0.1"
+
+# Crypto RNG
+rand_core = { version = "0.9", features = ["getrandom"] }
+
+# Testing
+wiremock = "0.6"
+
+[profile.release]
+opt-level = 2
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
