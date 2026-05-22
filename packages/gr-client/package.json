@@ -1,0 +1,18 @@
+{
+  "name": "@discord-gr/gr-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@discord-gr/core": "*"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.0"
+  }
+}
