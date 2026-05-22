@@ -5,3 +5,5 @@ dist/
 *.db-journal
 .next/
 .opencode/logs/
+.sisyphus/
+*.log
