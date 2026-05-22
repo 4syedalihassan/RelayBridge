@@ -6,17 +6,13 @@ import { cn } from '@/lib/utils';
 import { signOut } from 'next-auth/react';
 import {
   LayoutDashboard,
-  Server,
   Settings,
-  History,
   LogOut,
 } from 'lucide-react';
 
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard/servers', label: 'Servers', icon: Server },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-  { href: '/dashboard/logs', label: 'Archive Logs', icon: History },
 ];
 
 export function DashboardSidebar() {
