@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Server {
+  id            String   @id
+  name          String
+  iconUrl       String?
+  archivingEnabled Boolean @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  channels      Channel[]
+  userMappings  UserMapping[]
+}
+
+model Channel {
+  id              String   @id
+  serverId        String
+  name            String
+  archivingEnabled Boolean @default(false)
+  lastArchivedAt  DateTime?
+
+  server          Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+}
+
+model UserMapping {
+  id            String @id @default(cuid())
+  serverId      String
+  discordUserId String
+  discordName   String
+  corporateEmail String
+
+  server        Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, discordUserId])
+}
+
+model ArchiveLog {
+  id              String   @id @default(cuid())
+  channelId       String
+  serverId        String
+  messageId       String?
+  eventType       String
+  grReconciliationId String?
+  status          String
+  errorMessage    String?
+  archivedAt      DateTime @default(now())
+}
+
+model GlobalRelayConfig {
+  id            String @id @default("default")
+  clientId      String
+  clientSecret  String
+  oauthUrl      String @default("https://iam-oauth2.globalrelay.com/oauth2/token")
+  apiBaseUrl    String @default("https://conversations.api.globalrelay.com/v2")
+  updatedAt     DateTime @updatedAt
+}
