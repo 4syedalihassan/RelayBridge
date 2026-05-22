@@ -1,4 +1,4 @@
-import { type Message } from 'discord.js';
+import { type Message, type PartialMessage } from 'discord.js';
 import { type DiscordMessageDeleteEvent } from '@discord-gr/core';
 
 export type DeleteHandlerCallback = (event: DiscordMessageDeleteEvent) => void | Promise<void>;
@@ -9,15 +9,16 @@ export function onMessageDelete(callback: DeleteHandlerCallback): void {
   handlers.push(callback);
 }
 
-export async function handleMessageDelete(message: Message): Promise<void> {
-  if (!message.guild) return;
+export async function handleMessageDelete(message: Message | PartialMessage): Promise<void> {
+  const resolved = message as Message;
+  if (!resolved.guild) return;
 
   const event: DiscordMessageDeleteEvent = {
     type: 'Message_deleted',
     eventTime: Date.now(),
-    messageId: message.id,
-    channelId: message.channelId,
-    serverId: message.guildId!,
+    messageId: resolved.id,
+    channelId: resolved.channelId,
+    serverId: resolved.guildId!,
   };
 
   for (const handler of handlers) {
