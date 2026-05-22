@@ -61,3 +61,20 @@ model GlobalRelayConfig {
   apiBaseUrl    String @default("https://conversations.api.globalrelay.com/v2")
   updatedAt     DateTime @updatedAt
 }
+
+model Connector {
+  id                String   @id @default(cuid())
+  name              String
+  description       String?
+  discordServerId   String
+  discordChannelIds String   // comma-separated channel IDs
+  grClientId        String
+  grClientSecret    String
+  grOAuthUrl        String   @default("https://iam-oauth2.globalrelay.com/oauth2/token")
+  grApiBaseUrl      String   @default("https://conversations.api.globalrelay.com/v2")
+  enabled           Boolean  @default(false)
+  status            String   @default("offline") // "online" | "offline" | "error"
+  lastHealthCheckAt DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
