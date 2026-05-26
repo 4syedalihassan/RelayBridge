@@ -1,0 +1,9 @@
+D:\Projects\DiscordToGlobalRelay\target\debug\deps\command_attr-ead1779b2e9e3d29.d: C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\lib.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\attributes.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\consts.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\structures.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\util.rs
+
+D:\Projects\DiscordToGlobalRelay\target\debug\deps\command_attr-ead1779b2e9e3d29.dll: C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\lib.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\attributes.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\consts.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\structures.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\util.rs
+
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\lib.rs:
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\attributes.rs:
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\consts.rs:
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\structures.rs:
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\command_attr-0.5.4\src\util.rs:

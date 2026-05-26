@@ -3,15 +3,19 @@
 pub mod config;
 pub mod encryption;
 pub mod error;
+pub mod in_process;
 pub mod manager;
 pub mod state;
 pub mod types;
 
 pub use config::AppConfig;
+pub use encryption::EncryptionService;
 pub use error::{BridgeError, BridgeResult};
+pub use in_process::InProcessManager;
 pub use manager::BridgeManager;
 pub use state::{BridgeState, SharedBridgeState};
 pub use types::*;
+use zeroize::Zeroize;
 
 /// Secret string wrapper that zeroizes on drop.
 #[derive(serde::Serialize, serde::Deserialize, Clone, zeroize::Zeroize, zeroize::ZeroizeOnDrop)]

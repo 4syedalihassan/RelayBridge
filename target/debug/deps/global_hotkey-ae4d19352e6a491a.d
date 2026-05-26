@@ -1,0 +1,9 @@
+D:\Projects\DiscordToGlobalRelay\target\debug\deps\global_hotkey-ae4d19352e6a491a.d: C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\lib.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\error.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\hotkey.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\platform_impl\mod.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\platform_impl\windows\mod.rs
+
+D:\Projects\DiscordToGlobalRelay\target\debug\deps\libglobal_hotkey-ae4d19352e6a491a.rmeta: C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\lib.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\error.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\hotkey.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\platform_impl\mod.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\platform_impl\windows\mod.rs
+
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\lib.rs:
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\error.rs:
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\hotkey.rs:
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\platform_impl\mod.rs:
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\global-hotkey-0.7.0\src\platform_impl\windows\mod.rs:

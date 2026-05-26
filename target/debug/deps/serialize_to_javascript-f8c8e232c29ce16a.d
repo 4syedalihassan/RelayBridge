@@ -1,0 +1,6 @@
+D:\Projects\DiscordToGlobalRelay\target\debug\deps\serialize_to_javascript-f8c8e232c29ce16a.d: C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serialize-to-javascript-0.1.2\src\lib.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serialize-to-javascript-0.1.2\src\private.rs
+
+D:\Projects\DiscordToGlobalRelay\target\debug\deps\libserialize_to_javascript-f8c8e232c29ce16a.rmeta: C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serialize-to-javascript-0.1.2\src\lib.rs C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serialize-to-javascript-0.1.2\src\private.rs
+
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serialize-to-javascript-0.1.2\src\lib.rs:
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serialize-to-javascript-0.1.2\src\private.rs:

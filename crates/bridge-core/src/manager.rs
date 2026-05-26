@@ -7,6 +7,7 @@
 
 use crate::error::BridgeResult;
 use crate::types::*;
+use crate::AppConfig;
 use async_trait::async_trait;
 
 /// Single interface for all bridge management operations.

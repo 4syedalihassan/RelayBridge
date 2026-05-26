@@ -1,0 +1,5 @@
+D:\Projects\DiscordToGlobalRelay\target\debug\deps\webpki_roots-506dda63e8bf9a66.d: C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\webpki-roots-1.0.7\src\lib.rs
+
+D:\Projects\DiscordToGlobalRelay\target\debug\deps\libwebpki_roots-506dda63e8bf9a66.rmeta: C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\webpki-roots-1.0.7\src\lib.rs
+
+C:\Users\SyedAliHassanRaza\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\webpki-roots-1.0.7\src\lib.rs:

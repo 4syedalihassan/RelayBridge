@@ -12,9 +12,9 @@ thiserror.workspace = true
 tracing.workspace = true
 uuid.workspace = true
 chrono.workspace = true
-zeroize.workspace = true
+zeroize = { workspace = true, features = ["zeroize_derive"] }
 aes-gcm.workspace = true
 keyring.workspace = true
 async-trait.workspace = true
-rand_core.workspace = true
+rand_core = { workspace = true, features = ["os_rng"] }
 sqlx.workspace = true

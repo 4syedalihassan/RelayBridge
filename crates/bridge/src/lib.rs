@@ -13,9 +13,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use bridge_core::error::{BridgeError, BridgeResult};
 use bridge_core::types::HealthStatus;
-use discord_bot::DiscordBot;
+use discord_bot::{BridgeEvent, DiscordBot};
 use gr_client::GrClient;
-use tokio::sync::watch;
+use tokio::sync::{mpsc, watch};
 
 /// A fully running bridge for a single connector.
 pub struct BridgeInstance {
@@ -29,6 +29,7 @@ pub struct BridgeInstance {
     is_discord_connected: Arc<AtomicBool>,
     discord_handle: Option<tokio::task::JoinHandle<()>>,
     queue_handle: Option<tokio::task::JoinHandle<()>>,
+    event_handle: Option<tokio::task::JoinHandle<()>>,
     health_handle: Option<tokio::task::JoinHandle<()>>,
     /// Watch receiver — always contains the latest `HealthStatus`.
     pub health_status: watch::Receiver<HealthStatus>,
@@ -37,10 +38,11 @@ pub struct BridgeInstance {
 impl BridgeInstance {
     /// Start a bridge for `connector_id`.
     ///
-    /// Spawns three background tasks:
+    /// Spawns four background tasks:
     /// 1. Discord bot gateway connection.
-    /// 2. Queue processor — dequeues items and sends them to GR.
-    /// 3. Health checker — polls every 30 s.
+    /// 2. Discord event consumer → EventRouter → ArchiveQueue.
+    /// 3. Queue processor — dequeues items and sends them to GR.
+    /// 4. Health checker — polls every 30 s.
     pub async fn start(
         connector_id: String,
         discord_bot_token: String,
@@ -53,14 +55,31 @@ impl BridgeInstance {
         let queue = Arc::new(ArchiveQueue::new());
         let is_discord_connected = Arc::new(AtomicBool::new(false));
 
+        // ── MPSC channel: Discord events → EventRouter ───────────────────────
+        let (event_tx, mut event_rx) = mpsc::channel::<BridgeEvent>(256);
+
         // ── Discord bot task ─────────────────────────────────────────────────
-        let bot = DiscordBot::new(discord_bot_token, channel_ids);
+        let mut bot = DiscordBot::new(discord_bot_token, channel_ids);
         let connected_flag = Arc::clone(&is_discord_connected);
-        let discord_handle = bot.start().await.map_err(|e| {
+        let discord_handle = bot.start(event_tx).await.map_err(|e| {
             BridgeError::Discord(format!("Failed to start Discord bot: {e}"))
         })?;
-        // Mark as connected once the placeholder task is running.
         connected_flag.store(true, Ordering::Relaxed);
+
+        // ── Event consumer task ──────────────────────────────────────────────
+        let queue_for_events = Arc::clone(&queue);
+        let cid_for_events = connector_id.clone();
+        let guild_name_clone = guild_name.clone();
+        let event_handle = tokio::spawn(async move {
+            let router = EventRouter::new(
+                queue_for_events,
+                cid_for_events,
+                guild_name_clone,
+            );
+            while let Some(event) = event_rx.recv().await {
+                router.route(event, "unknown-channel").await;
+            }
+        });
 
         // ── Queue processor task ─────────────────────────────────────────────
         let queue_clone = Arc::clone(&queue);
@@ -80,9 +99,7 @@ impl BridgeInstance {
                         }
                         Err(e) => {
                             tracing::error!(connector_id = %cid, error = %e, "Archive failed");
-                            // Re-enqueue is intentionally skipped here because
-                            // `GrClient::archive` already retries 3 times internally.
-                            // A future enhancement could push back into the queue.
+                            // GrClient::archive already retries 3× internally.
                         }
                     }
                 } else {
@@ -108,6 +125,7 @@ impl BridgeInstance {
             is_discord_connected,
             discord_handle: Some(discord_handle),
             queue_handle: Some(queue_handle),
+            event_handle: Some(event_handle),
             health_handle: Some(health_handle),
             health_status,
         })
@@ -121,6 +139,7 @@ impl BridgeInstance {
         let handles: Vec<_> = [
             self.discord_handle.take(),
             self.queue_handle.take(),
+            self.event_handle.take(),
             self.health_handle.take(),
         ]
         .into_iter()

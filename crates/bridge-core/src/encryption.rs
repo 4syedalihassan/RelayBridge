@@ -33,7 +33,8 @@ impl EncryptionService {
             .map_err(|e| crate::error::BridgeError::Encryption(e.to_string()))?;
 
         let mut nonce_bytes = [0u8; 12];
-        rand_core::OsRng.fill_bytes(&mut nonce_bytes);
+        let mut rng = rand_core::OsRng;
+        rng.fill_bytes(&mut nonce_bytes);
         let nonce = Nonce::from_slice(&nonce_bytes);
 
         let ciphertext = cipher
@@ -60,11 +61,14 @@ impl EncryptionService {
     }
 
     fn load_or_create_key() -> BridgeResult<[u8; 32]> {
-        let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_KEY_NAME);
+        let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_KEY_NAME)
+            .map_err(|e| crate::error::BridgeError::Keychain(e.to_string()))?;
 
         match entry.get_password() {
             Ok(password) => {
-                let bytes: Vec<u8> = password.into_bytes();
+                let bytes = hex_decode(&password).ok_or_else(|| {
+                    crate::error::BridgeError::Keychain("Invalid hex key in keychain".to_string())
+                })?;
                 if bytes.len() == 32 {
                     let mut key = [0u8; 32];
                     key.copy_from_slice(&bytes);
@@ -76,10 +80,11 @@ impl EncryptionService {
             }
             Err(_) => {
                 let mut key = [0u8; 32];
-                rand_core::OsRng.fill_bytes(&mut key);
+                let mut rng = rand_core::OsRng;
+                rng.fill_bytes(&mut key);
 
-                // Encode key as base64 (OS keychain typically requires printable strings)
-                let encoded = base64_encode(&key);
+                // Encode key as hex (OS keychain typically requires printable strings)
+                let encoded = hex_encode(&key);
                 entry.set_password(&encoded).map_err(|e| {
                     crate::error::BridgeError::Keychain(e.to_string())
                 })?;
@@ -90,28 +95,28 @@ impl EncryptionService {
     }
 }
 
-fn base64_encode(bytes: &[u8]) -> String {
-    const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    let mut result = String::new();
-    for chunk in bytes.chunks(3) {
-        let b0 = chunk[0] as u32;
-        let b1 = chunk.get(1).copied().unwrap_or(0) as u32;
-        let b2 = chunk.get(2).copied().unwrap_or(0) as u32;
-        let triple = (b0 << 16) | (b1 << 8) | b2;
-        result.push(CHARS[((triple >> 18) & 0x3F) as usize] as char);
-        result.push(CHARS[((triple >> 12) & 0x3F) as usize] as char);
-        if chunk.len() > 1 {
-            result.push(CHARS[((triple >> 6) & 0x3F) as usize] as char);
-        } else {
-            result.push('=');
-        }
-        if chunk.len() > 2 {
-            result.push(CHARS[(triple & 0x3F) as usize] as char);
-        } else {
-            result.push('=');
-        }
+fn hex_encode(bytes: &[u8]) -> String {
+    let mut s = String::new();
+    for &b in bytes {
+        s.push_str(&format!("{:02x}", b));
     }
-    result
+    s
+}
+
+fn hex_decode(s: &str) -> Option<Vec<u8>> {
+    if s.len() % 2 != 0 {
+        return None;
+    }
+    let mut bytes = Vec::new();
+    for i in (0..s.len()).step_by(2) {
+        if i + 2 > s.len() {
+            return None;
+        }
+        let hex_val = &s[i..i+2];
+        let byte = u8::from_str_radix(hex_val, 16).ok()?;
+        bytes.push(byte);
+    }
+    Some(bytes)
 }
 
 #[cfg(test)]
@@ -119,16 +124,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_base64_roundtrip() {
+    fn test_hex_roundtrip() {
         let input = b"Hello, World!";
-        let encoded = base64_encode(input);
-        assert_eq!(encoded, "SGVsbG8sIFdvcmxkIQ==");
-    }
-
-    #[test]
-    fn test_base64_padding() {
-        assert_eq!(base64_encode(b"f"), "Zg==");
-        assert_eq!(base64_encode(b"fo"), "Zm8=");
-        assert_eq!(base64_encode(b"foo"), "Zm9v");
+        let encoded = hex_encode(input);
+        let decoded = hex_decode(&encoded).unwrap();
+        assert_eq!(input.as_ref(), decoded.as_slice());
     }
 }
