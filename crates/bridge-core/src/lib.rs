@@ -4,11 +4,13 @@ pub mod config;
 pub mod encryption;
 pub mod error;
 pub mod manager;
+pub mod state;
 pub mod types;
 
 pub use config::AppConfig;
-pub use error::BridgeError;
+pub use error::{BridgeError, BridgeResult};
 pub use manager::BridgeManager;
+pub use state::{BridgeState, SharedBridgeState};
 pub use types::*;
 
 /// Secret string wrapper that zeroizes on drop.

@@ -11,6 +11,7 @@ serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 reqwest.workspace = true
+chrono.workspace = true
 bridge-core = { path = "../bridge-core" }
 
 [dev-dependencies]

@@ -3,5 +3,4 @@
 pub mod auth;
 pub mod client;
 
-pub use auth::GrAuth;
-pub use client::GrClient;
+pub use client::{ArchiveRequest, ArchiveResponse, GrClient};
