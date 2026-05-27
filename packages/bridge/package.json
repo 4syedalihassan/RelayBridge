@@ -15,7 +15,7 @@
     "@discord-gr/core": "*",
     "@discord-gr/discord-bot": "*",
     "@discord-gr/gr-client": "*",
-    "@prisma/client": "^5.20.0"
+    "@prisma/client": "^7.8.0"
   },
   "devDependencies": {
     "tsx": "^4.0.0",
