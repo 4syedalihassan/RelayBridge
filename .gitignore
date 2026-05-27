@@ -7,6 +7,8 @@ dist/
 .opencode/logs/
 .sisyphus/
 *.log
+.rlhf-blocked
+.rlhf-lastblock
 
 # Build & Dependency Outputs
 target/
