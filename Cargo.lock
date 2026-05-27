@@ -619,7 +619,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "keyring",
- "rand 0.8.6",
+ "rand 0.9.4",
  "serde",
  "serde_json",
  "sqlx",
