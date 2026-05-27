@@ -25,5 +25,5 @@ We will acknowledge receipt of your vulnerability report within **48 hours** and
 
 ## Secure Configuration
 
-*   **Encryption Keys**: RelayBridge automatically generates a machine-wide AES-256 master key under `C:\ProgramData\DiscordGR\master.key`. Keep this file highly restricted (read-only by the application context / Windows Service).
+*   **Encryption Keys**: RelayBridge automatically generates a machine-wide AES-256 master key. Keep this file highly restricted (read-only by the application context / Windows Service).
 *   **Environment Variables**: Never commit your active `.env` file to source control. It is permanently ignored in `.gitignore`.
