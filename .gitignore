@@ -21,3 +21,13 @@ app.log
 *.zip
 DiscordToGlobalRelay.zip
 
+# AI Agent Sessions, Planning & Watchdogs
+.agent-session.md
+.agent-watchdog.log
+session-*.md
+.playwright-mcp/
+.opencode/
+tasks/
+docs/superpowers/
+
+
