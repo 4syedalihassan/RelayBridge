@@ -19,7 +19,7 @@ If you discover a security vulnerability within RelayBridge, please report it pr
 2. Click **Advisories** under the "Reporting" sidebar.
 3. Click **Report a vulnerability** to open a private advisory draft.
 
-Alternatively, you can email security reports directly to: **ali.hassan@logicielservice.com**
+Alternatively, you can email security reports directly to: **4syedalihassan@gmail.com**
 
 We will acknowledge receipt of your vulnerability report within **48 hours** and coordinate a secure patch release.
 
