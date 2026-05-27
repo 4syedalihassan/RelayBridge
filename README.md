@@ -1,157 +1,131 @@
-# Discord → Global Relay Bridge
+# 🛡️ RelayBridge
 
-A service that captures Discord messages in real-time and archives them to Global Relay's Conversation Archiving API for compliance and record-keeping.
+An enterprise-grade, high-performance, real-time message archival bridge from **Discord** to **Global Relay's Conversation Archiving API**. Built with **Rust**, **Tauri**, and **React** to guarantee optimal memory safety, security, and a beautiful native Windows desktop experience.
 
-## Architecture
+---
+
+## 🏛️ Architecture
+
+RelayBridge is structured as a high-fidelity, multi-tiered Rust Cargo workspace coupled with a modular React frontend served securely by Tauri:
 
 ```mermaid
-graph LR
-    A[Discord Gateway] --> B[Discord Bot]
-    B --> C[Bridge Orchestrator]
-    C --> D[Event Transformers]
-    D --> E[GR Client]
-    E --> F[Global Relay API]
-    C --> G[(SQLite DB)]
-    H[Dashboard] --> G
-    H --> I[Next.js App]
+graph TD
+    A[Discord Client] -->|Real-time Gateway Events| B[discord-bot crate]
+    B -->|MPSC Channels| C[bridge crate]
+    C -->|AES-256 Encrypted Config| D[database crate]
+    D -->|Persistent SQLite| E[(C:\ProgramData\DiscordGR\discord-gr.db)]
+    C -->|Compliance Payload| F[gr-client crate]
+    F -->|Secure OAuth2 & REST| G[Global Relay API]
+    
+    H[Tauri Desktop Window] -->|Local IPC Commands| I[src-tauri]
+    I -->|Direct AppState Access| C
+    I -->|Serves Webview| J[packages/desktop-ui]
+    J -->|Real-time Poll| I
 ```
 
-### Packages
+### 🗂️ Core Components & Crates
 
-| Package | Description |
-|---------|-------------|
-| `packages/core` | Shared types, config, and event transformers |
-| `packages/gr-client` | Global Relay API client with OAuth2 |
-| `packages/discord-bot` | Discord Gateway event handlers |
-| `packages/bridge` | Orchestrator: queue, router, indexer |
-| `packages/dashboard` | Next.js web dashboard |
+| Component / Crate | Type | Description |
+|---|---|---|
+| **`src-tauri`** | Rust Application | Tauri v2 configuration, window controls, centered custom splash screen loader, and a fully programmatic context system tray (Left-Click to restore, Right-Click menu options: *Open UI*, *Show Status*, *Exit*). |
+| **`packages/desktop-ui`** | React + Vite UI | A high-fidelity, dark-themed dashboard built with standard vanilla CSS and Lucide icons. Includes interactive analytics charts, step-by-step connection wizard, and live status dots. |
+| **`crates/bridge-core`** | Rust Library | Houses the core shared domain types, app configurations, and machine-wide AES-256 encryption/decryption keys. |
+| **`crates/bridge`** | Rust Library | The system orchestrator. Coordinates thread-safe start/stop commands, queues messages, routes events, and logs connection health status in real-time. |
+| **`crates/database`** | Rust Library | Thread-safe SQLite connector backed by a database connection pool. Features compile-time embedded SQLx schema migrations to ensure 100% database schema consistency. |
+| **`crates/discord-bot`** | Rust Library | Serenity-based Discord Gateway client that handles text channels, guild metadata, message creation/deletion events, and reaction captures. Configured with Schannel TLS for native Windows root certificate support. |
+| **`crates/gr-client`** | Rust Library | Global Relay API client supporting JWT client-credentials OAuth token rotation, automated retry-on-rate-limit (429), and robust payload delivery. |
 
-## Prerequisites
+---
 
-- Node.js 18+
-- npm 9+
-- A Discord Bot Token and Application ID
-- Global Relay API credentials (Client ID + Client Secret)
+## 🔒 Security & Self-Healing Architecture
 
-## Setup
+RelayBridge is built for critical corporate environments where data integrity and security are absolute requirements:
 
-### 1. Clone and Install
+*   **Machine-Wide Database & Keys**: To ensure seamless interoperability between the Tauri user GUI and the background Windows Service (running as `LocalSystem`), all state is stored machine-wide under:
+    *   **Database**: `C:\ProgramData\DiscordGR\discord-gr.db`
+    *   **Master Key**: `C:\ProgramData\DiscordGR\master.key`
+*   **AES-256 Encryption**: Every sensitive credential (Discord Bot Token, Discord Client Secret, Global Relay Client ID, Global Relay Client Secret) is encrypted at rest using high-entropy AES-256-GCM keys.
+*   **Self-Healing Design**: If the `C:\ProgramData\DiscordGR` folder is ever deleted, the application will automatically recreate the folders, generate a fresh cryptographically secure random master key via the OS entropy pool (`rand::rngs::OsRng`), spin up the SQLite database file, and run all schema migrations to return the app to a pristine, operational state automatically.
+
+---
+
+## 🛠️ Prerequisites
+
+*   **Rust**: Stable toolchain (Rust 1.75+) with `cargo` installed.
+*   **Node.js**: Node 18+ and `npm`.
+*   **WiX Toolset v3**: Required on Windows to bundle and compile the `.msi` production installer.
+
+---
+
+## 🚀 Setup & Local Development
+
+### 1. Clone and Install Dependencies
 
 ```bash
-git clone <repo-url>
-cd DiscordToGlobalRelay
+git clone https://github.com/4syedalihassan/RelayBridge.git
+cd RelayBridge
 npm install
 ```
 
 ### 2. Configure Environment
 
-Copy `.env.example` to `.env` and fill in your credentials:
+Copy `.env.example` to `.env` and fill in your developer keys (used for mock server tests and local development):
 
 ```env
-# Discord
 DISCORD_TOKEN=your_bot_token
 DISCORD_CLIENT_ID=your_application_id
 DISCORD_CLIENT_SECRET=your_oauth_secret
 
-# Global Relay
 GR_CLIENT_ID=your_gr_client_id
 GR_CLIENT_SECRET=your_gr_client_secret
 GR_OAUTH_URL=https://iam-oauth2.globalrelay.com/oauth2/token
 GR_API_BASE_URL=https://conversations.api.globalrelay.com/v2
-
-# Dashboard Auth
-NEXTAUTH_SECRET=generate_a_random_secret
-NEXTAUTH_URL=http://localhost:3000
-DISCORD_ADMIN_GUILD_ID=your_server_id
 ```
 
-### 3. Initialize Database
+### 3. Run in Development Mode
 
+To start the local React development server and launch the Tauri desktop app in debug mode with hot-reload enabled:
+
+```powershell
+.\dev.bat
+```
+
+---
+
+## 📦 Production Release Build
+
+To compile a highly optimized, fully styled standalone installer bundle for Windows:
+
+```powershell
+.\build.bat
+```
+
+This script:
+1. Sets the compiler PATH dynamically to locate your Rust toolchain.
+2. Compiles the minified React production assets.
+3. Compiles the optimized release version of the Rust workspace.
+4. Invokes the WiX Toolset to link and package the final installer at:
+   `target/release/bundle/msi/RelayBridge_0.1.0_x64_en-US.msi`
+
+---
+
+## 🧪 Testing
+
+RelayBridge features a comprehensive suite of unit and integration tests.
+
+To run the full suite:
 ```bash
-npx prisma generate
-npx prisma db push
-npx ts-node prisma/seed.ts
+cargo test --workspace
 ```
 
-### 4. Run the Bridge
-
+To run individual crate tests (e.g. database transactions or client encryption):
 ```bash
-npm run dev -w packages/bridge
+cargo test -p database
+cargo test -p gr-client
 ```
 
-### 5. Run the Dashboard
+---
 
-```bash
-npm run dev -w packages/dashboard
-```
+## 📄 License
 
-Visit `http://localhost:3000` and log in with Discord OAuth.
-
-## Usage
-
-### Deploy Slash Commands
-
-```bash
-npx ts-node packages/discord-bot/src/deploy-commands.ts
-```
-
-### Monitor Archive Logs
-
-Check the Dashboard > Logs page or query the SQLite DB directly:
-
-```bash
-npx prisma studio
-```
-
-## Testing
-
-```bash
-# Run all tests
-npx vitest run
-
-# Run specific package tests
-npx vitest run packages/bridge
-npx vitest run packages/gr-client
-npx vitest run packages/core
-```
-
-## Project Structure
-
-```
-DiscordToGlobalRelay/
-├── packages/
-│   ├── core/           # Types, config, transformers
-│   │   └── src/
-│   │       ├── types.ts
-│   │       ├── config.ts
-│   │       └── transformers/
-│   ├── gr-client/      # Global Relay API client
-│   │   └── src/
-│   │       ├── auth.ts
-│   │       └── client.ts
-│   ├── discord-bot/    # Discord event handlers
-│   │   └── src/
-│   │       └── handlers/
-│   ├── bridge/         # Orchestration layer
-│   │   └── src/
-│   │       ├── router.ts
-│   │       ├── queue.ts
-│   │       ├── indexer.ts
-│   │       └── index.ts
-│   └── dashboard/      # Web management UI
-│       └── src/
-│           ├── app/
-│           │   ├── api/
-│           │   └── dashboard/
-│           └── components/
-├── prisma/
-│   ├── schema.prisma
-│   └── seed.ts
-└── tests/
-    └── e2e/
-        └── smoke.test.ts
-```
-
-## License
-
-MIT
+This project is licensed under the MIT License - see the LICENSE file for details.
