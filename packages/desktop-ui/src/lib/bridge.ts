@@ -114,7 +114,7 @@ export const bridge = {
   // Discord helpers
   getDiscordGuilds: () => invoke<GuildInfo[]>('get_discord_guilds'),
   getDiscordChannels: (guildId: string) =>
-    invoke<ChannelInfo[]>('get_discord_channels', { guildId }),
+    invoke<ChannelInfo[]>('get_discord_channels', { guild_id: guildId }),
 
   // Analytics
   getAnalyticsSummary: () => invoke<AnalyticsSummary>('get_analytics_summary'),

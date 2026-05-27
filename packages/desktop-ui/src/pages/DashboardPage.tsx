@@ -34,11 +34,18 @@ export function DashboardPage() {
   const [connectors, setConnectors] = useState<Connector[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const load = (showLoading = false) => {
+    if (showLoading) setLoading(true)
     Promise.all([bridge.getAnalyticsSummary(), bridge.listConnectors()])
       .then(([s, c]) => { setSummary(s); setConnectors(c) })
       .catch(console.error)
-      .finally(() => setLoading(false))
+      .finally(() => { if (showLoading) setLoading(false) })
+  }
+
+  useEffect(() => {
+    load(true);
+    const interval = setInterval(() => load(false), 3000);
+    return () => clearInterval(interval);
   }, [])
 
   const enabledCount = connectors.filter(c => c.enabled).length
@@ -49,7 +56,7 @@ export function DashboardPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#e2e8f0' }}>Dashboard</h1>
-          <p style={{ color: '#64748b', marginTop: 4 }}>Monitor your Discord → Global Relay bridges</p>
+          <p style={{ color: '#64748b', marginTop: 4 }}>Monitor your RelayBridge connectors</p>
         </div>
         <Link to="/connectors/new" className="btn btn-primary">
           <Plus size={16} />

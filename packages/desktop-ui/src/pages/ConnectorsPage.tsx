@@ -6,17 +6,26 @@ import { bridge, type Connector } from '../lib/bridge'
 export function ConnectorsPage() {
   const [connectors, setConnectors] = useState<Connector[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const load = () => bridge.listConnectors()
-    .then(setConnectors)
-    .catch(console.error)
-    .finally(() => setLoading(false))
+  const load = (showLoading = false) => {
+    if (showLoading) setLoading(true)
+    setError(null)
+    bridge.listConnectors()
+      .then(data => { setConnectors(data); setError(null) })
+      .catch(e => { setError(String(e)); console.error('listConnectors failed:', e) })
+      .finally(() => { if (showLoading) setLoading(false) })
+  }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load(true);
+    const interval = setInterval(() => load(false), 3000); // Auto-update stats every 3 seconds
+    return () => clearInterval(interval);
+  }, [])
 
   const handleToggle = async (id: string, enabled: boolean) => {
     await bridge.toggleConnector(id, !enabled)
-    load()
+    load(false)
   }
 
   const handleDelete = async (id: string, name: string) => {
@@ -30,12 +39,24 @@ export function ConnectorsPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#e2e8f0' }}>Connectors</h1>
-          <p style={{ color: '#64748b', marginTop: 4 }}>Manage Discord → Global Relay connections</p>
+          <p style={{ color: '#64748b', marginTop: 4 }}>Manage your RelayBridge connectors</p>
         </div>
-        <Link to="/connectors/new" className="btn btn-primary">
-          <Plus size={16} /> New Connector
-        </Link>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-secondary" onClick={() => load(true)} disabled={loading} title="Refresh">
+            {loading ? '⟳' : '↻'} Refresh
+          </button>
+          <Link to="/connectors/new" className="btn btn-primary">
+            <Plus size={16} /> New Connector
+          </Link>
+        </div>
       </div>
+
+      {error && (
+        <div style={{ background: '#3f1f1f', border: '1px solid #ef4444', borderRadius: 8, padding: '12px 16px', marginBottom: 24, color: '#fca5a5', fontSize: '0.875rem' }}>
+          <strong>Error loading connectors:</strong> {error}
+          <button onClick={() => load(true)} style={{ marginLeft: 12, background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', textDecoration: 'underline' }}>Retry</button>
+        </div>
+      )}
 
       {loading ? (
         <div style={{ color: '#64748b', textAlign: 'center', padding: 48 }}>Loading…</div>
@@ -44,7 +65,7 @@ export function ConnectorsPage() {
           <div style={{ fontSize: '2rem', marginBottom: 12 }}>🔌</div>
           <div style={{ color: '#94a3b8', marginBottom: 8, fontWeight: 600 }}>No connectors yet</div>
           <div style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: 24 }}>
-            Create a connector to start bridging Discord messages to Global Relay
+            Create a connector to start bridging Discord messages to Global Relay for compliance archiving
           </div>
           <Link to="/connectors/new" className="btn btn-primary">
             <Plus size={16} /> Create connector

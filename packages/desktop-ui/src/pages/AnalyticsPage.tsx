@@ -1,24 +1,30 @@
 import { useEffect, useState } from 'react'
-import { bridge, type AnalyticsSummary, type Connector, type ConnectorAnalytics } from '../lib/bridge'
+import { bridge, type Connector, type ConnectorAnalytics } from '../lib/bridge'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts'
 
 const COLORS = ['#818cf8', '#a78bfa', '#c084fc', '#e879f9', '#f472b6', '#fb7185']
 
 export function AnalyticsPage() {
-  const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
   const [connectors, setConnectors] = useState<Connector[]>([])
   const [analytics, setAnalytics] = useState<ConnectorAnalytics[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    Promise.all([bridge.getAnalyticsSummary(), bridge.listConnectors()])
-      .then(async ([s, cs]) => {
-        setSummary(s); setConnectors(cs)
+  const load = (showLoading = false) => {
+    if (showLoading) setLoading(true)
+    bridge.listConnectors()
+      .then(async (cs) => {
+        setConnectors(cs)
         const a = await Promise.all(cs.map(c => bridge.getConnectorAnalytics(c.id)))
         setAnalytics(a)
       })
       .catch(console.error)
-      .finally(() => setLoading(false))
+      .finally(() => { if (showLoading) setLoading(false) })
+  }
+
+  useEffect(() => {
+    load(true);
+    const interval = setInterval(() => load(false), 3000);
+    return () => clearInterval(interval);
   }, [])
 
   // Merge daily volumes across all connectors for the global area chart

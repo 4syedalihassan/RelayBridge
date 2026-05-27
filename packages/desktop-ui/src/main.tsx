@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import './index.css'
 
 // Pages
@@ -11,6 +12,7 @@ import { ConnectorDetailPage } from './pages/ConnectorDetailPage'
 import { NewConnectorPage } from './pages/NewConnectorPage'
 import { AnalyticsPage } from './pages/AnalyticsPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { SplashCard } from './components/SplashCard'
 
 const router = createBrowserRouter([
   {
@@ -27,8 +29,16 @@ const router = createBrowserRouter([
   },
 ])
 
+let isSplashscreen = false
+try {
+  isSplashscreen = getCurrentWindow().label === 'splashscreen'
+} catch (e) {
+  // Safe fallback if running in dev server outside tauri
+  isSplashscreen = window.location.search.includes('splash')
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    {isSplashscreen ? <SplashCard /> : <RouterProvider router={router} />}
   </React.StrictMode>
 )

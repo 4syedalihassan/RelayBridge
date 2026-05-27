@@ -9,7 +9,7 @@ use aes_gcm::{
     aead::{Aead, KeyInit},
     Aes256Gcm, Nonce,
 };
-use rand_core::RngCore;
+use rand::RngCore;
 
 /// Master key name stored in OS keychain.
 const KEYCHAIN_SERVICE: &str = "discord-gr";
@@ -33,7 +33,7 @@ impl EncryptionService {
             .map_err(|e| crate::error::BridgeError::Encryption(e.to_string()))?;
 
         let mut nonce_bytes = [0u8; 12];
-        let mut rng = rand_core::OsRng;
+        let mut rng = rand::rngs::OsRng;
         rng.fill_bytes(&mut nonce_bytes);
         let nonce = Nonce::from_slice(&nonce_bytes);
 
@@ -61,6 +61,42 @@ impl EncryptionService {
     }
 
     fn load_or_create_key() -> BridgeResult<[u8; 32]> {
+        #[cfg(target_os = "windows")]
+        {
+            if let Some(programdata) = std::env::var_os("ProgramData") {
+                let dir = format!("{}\\DiscordGR", programdata.to_string_lossy());
+                let _ = std::fs::create_dir_all(&dir);
+                let key_path = format!("{}\\master.key", dir);
+
+                if let Ok(content) = std::fs::read_to_string(&key_path) {
+                    let trimmed = content.trim();
+                    if let Some(bytes) = hex_decode(trimmed) {
+                        if bytes.len() == 32 {
+                            let mut key = [0u8; 32];
+                            key.copy_from_slice(&bytes);
+                            return Ok(key);
+                        }
+                    }
+                }
+
+                // Create a new master key
+                let mut key = [0u8; 32];
+                let mut rng = rand::rngs::OsRng;
+                rng.fill_bytes(&mut key);
+
+                let encoded = hex_encode(&key);
+                if let Err(e) = std::fs::write(&key_path, &encoded) {
+                    return Err(crate::error::BridgeError::Encryption(format!(
+                        "Failed to write master key file: {}",
+                        e
+                    )));
+                }
+
+                return Ok(key);
+            }
+        }
+
+        // Fallback for non-Windows platforms: use standard OS keychain
         let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_KEY_NAME)
             .map_err(|e| crate::error::BridgeError::Keychain(e.to_string()))?;
 
@@ -80,7 +116,7 @@ impl EncryptionService {
             }
             Err(_) => {
                 let mut key = [0u8; 32];
-                let mut rng = rand_core::OsRng;
+                let mut rng = rand::rngs::OsRng;
                 rng.fill_bytes(&mut key);
 
                 // Encode key as hex (OS keychain typically requires printable strings)

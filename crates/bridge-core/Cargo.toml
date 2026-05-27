@@ -16,5 +16,5 @@ zeroize = { workspace = true, features = ["zeroize_derive"] }
 aes-gcm.workspace = true
 keyring.workspace = true
 async-trait.workspace = true
-rand_core = { workspace = true, features = ["os_rng"] }
+rand = { version = "0.8", features = ["std"] }
 sqlx.workspace = true

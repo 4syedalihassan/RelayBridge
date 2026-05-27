@@ -156,7 +156,7 @@ export function NewConnectorPage() {
         <ArrowLeft size={14} /> Back
       </button>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 8 }}>New Connector</h1>
-      <p style={{ color: '#64748b', marginBottom: 32 }}>Bridge Discord messages to Global Relay in 6 steps</p>
+      <p style={{ color: '#64748b', marginBottom: 32 }}>Set up a new RelayBridge connector in 6 steps</p>
 
       <ProgressBar current={step} />
 

@@ -28,15 +28,7 @@ export function SettingsPage() {
       <p style={{ color: '#64748b', marginBottom: 32 }}>Application configuration</p>
 
       <div className="card">
-        <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600, marginBottom: 20, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Storage</h3>
-
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Database Path</label>
-          <input type="text" value={config.db_path} onChange={e => set('db_path')(e.target.value)}
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 8, background: '#0d1117', border: '1px solid #1e293b', color: '#e2e8f0', fontSize: '0.875rem', outline: 'none' }} />
-        </div>
-
-        <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600, marginBottom: 20, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 28, paddingTop: 20, borderTop: '1px solid #1e293b' }}>Logging</h3>
+        <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600, marginBottom: 20, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logging</h3>
 
         <div style={{ marginBottom: 20 }}>
           <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Log Level</label>

@@ -127,3 +127,16 @@ pub async fn get_config(state: State<'_, AppState>) -> CmdResult<AppConfig> {
 pub async fn update_config(state: State<'_, AppState>, config: AppConfig) -> CmdResult<()> {
     state.manager.update_config(config).await.map_err(map_err)
 }
+
+/// Close the splash screen and show the main window.
+#[tauri::command]
+pub async fn close_splashscreen(window: tauri::Window) {
+    use tauri::Manager;
+    if let Some(splashscreen) = window.get_webview_window("splashscreen") {
+        let _ = splashscreen.close();
+    }
+    if let Some(main) = window.get_webview_window("main") {
+        let _ = main.show();
+    }
+}
+

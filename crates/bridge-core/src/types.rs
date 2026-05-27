@@ -37,6 +37,33 @@ pub struct Connector {
     pub updated_at: DateTime<Utc>,
 }
 
+/// Encrypted version of a connector stored at rest in the database.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptedConnector {
+    pub id: ConnectorId,
+    pub name: String,
+    pub description: Option<String>,
+    pub discord_bot_token: crate::Encrypted,
+    pub discord_client_id: String,
+    pub discord_client_secret: crate::Encrypted,
+    pub discord_guild_id: Option<String>,
+    pub discord_guild_name: Option<String>,
+    pub selected_channel_ids: Vec<String>,
+    pub gr_client_id: crate::Encrypted,
+    pub gr_client_secret: crate::Encrypted,
+    pub gr_oauth_url: String,
+    pub gr_api_base_url: String,
+    pub enabled: bool,
+    pub health_status: HealthStatus,
+    pub last_error: Option<String>,
+    pub total_archived: u64,
+    pub failed_count: u64,
+    pub success_rate: f64,
+    pub last_archived_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
 /// Discord bot credentials (plaintext in memory, encrypted at rest).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DiscordConfig {

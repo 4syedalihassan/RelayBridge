@@ -7,3 +7,17 @@ dist/
 .opencode/logs/
 .sisyphus/
 *.log
+
+# Build & Dependency Outputs
+target/
+packages/desktop-ui/dist/
+packages/desktop-ui/node_modules/
+packages/dashboard/node_modules/
+packages/dashboard/dist/
+*.key
+app.log
+
+# Large Archives
+*.zip
+DiscordToGlobalRelay.zip
+

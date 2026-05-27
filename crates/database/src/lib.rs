@@ -9,6 +9,7 @@ use sqlx::{
     Row,
 };
 use std::str::FromStr;
+use async_trait::async_trait;
 #[allow(unused_imports)]
 use tracing::{debug, instrument};
 
@@ -153,7 +154,7 @@ impl Database {
     /// Run all pending SQLx migrations from the `migrations/` directory embedded
     /// at compile time via the [`sqlx::migrate!`] macro.
     pub async fn run_migrations(&self) -> Result<(), sqlx::Error> {
-        sqlx::migrate!(concat!(env!("CARGO_MANIFEST_DIR"), "/migrations"))
+        sqlx::migrate!()
             .run(&self.pool)
             .await?;
         Ok(())
@@ -436,5 +437,191 @@ impl Database {
                 })
             })
             .collect()
+    }
+}
+
+// ─── Implementation of BridgeDb for Database ─────────────────────────────────
+
+impl From<ConnectorRow> for bridge_core::types::EncryptedConnector {
+    fn from(row: ConnectorRow) -> Self {
+        Self {
+            id: uuid::Uuid::parse_str(&row.id).unwrap(),
+            name: row.name,
+            description: row.description,
+            discord_bot_token: bridge_core::Encrypted {
+                ciphertext: row.discord_bot_token_enc,
+                nonce: row.discord_bot_token_nonce,
+            },
+            discord_client_id: row.discord_client_id,
+            discord_client_secret: bridge_core::Encrypted {
+                ciphertext: row.discord_client_secret_enc,
+                nonce: row.discord_client_secret_nonce,
+            },
+            discord_guild_id: row.discord_guild_id,
+            discord_guild_name: row.discord_guild_name,
+            selected_channel_ids: serde_json::from_str(&row.selected_channel_ids).unwrap_or_default(),
+            gr_client_id: bridge_core::Encrypted {
+                ciphertext: row.gr_client_id_enc,
+                nonce: row.gr_client_id_nonce,
+            },
+            gr_client_secret: bridge_core::Encrypted {
+                ciphertext: row.gr_client_secret_enc,
+                nonce: row.gr_client_secret_nonce,
+            },
+            gr_oauth_url: row.gr_oauth_url,
+            gr_api_base_url: row.gr_api_base_url,
+            enabled: row.enabled,
+            health_status: match row.health_status.as_str() {
+                "online" => bridge_core::types::HealthStatus::Online,
+                "error" => bridge_core::types::HealthStatus::Error,
+                _ => bridge_core::types::HealthStatus::Offline,
+            },
+            last_error: row.last_error,
+            total_archived: row.total_archived as u64,
+            failed_count: row.failed_count as u64,
+            success_rate: row.success_rate,
+            last_archived_at: row.last_archived_at.and_then(|s| {
+                chrono::DateTime::parse_from_rfc3339(&s).ok().map(|dt| dt.with_timezone(&chrono::Utc))
+            }),
+            created_at: chrono::DateTime::parse_from_rfc3339(&row.created_at).ok().map(|dt| dt.with_timezone(&chrono::Utc)).unwrap_or_else(chrono::Utc::now),
+            updated_at: chrono::DateTime::parse_from_rfc3339(&row.updated_at).ok().map(|dt| dt.with_timezone(&chrono::Utc)).unwrap_or_else(chrono::Utc::now),
+        }
+    }
+}
+
+#[async_trait]
+impl bridge_core::db::BridgeDb for Database {
+    async fn list_connectors(&self) -> Result<Vec<bridge_core::types::EncryptedConnector>, bridge_core::error::BridgeError> {
+        let rows = self.list_connectors().await
+            .map_err(|e| bridge_core::error::BridgeError::Database(e))?;
+        Ok(rows.into_iter().map(|r| r.into()).collect())
+    }
+
+    async fn get_connector(&self, id: &bridge_core::types::ConnectorId) -> Result<Option<bridge_core::types::EncryptedConnector>, bridge_core::error::BridgeError> {
+        let opt = self.get_connector(&id.to_string()).await
+            .map_err(|e| bridge_core::error::BridgeError::Database(e))?;
+        Ok(opt.map(|r| r.into()))
+    }
+
+    async fn create_connector(&self, conn: &bridge_core::types::EncryptedConnector) -> Result<(), bridge_core::error::BridgeError> {
+        let channels_json = serde_json::to_string(&conn.selected_channel_ids).unwrap_or_default();
+        self.create_connector(
+            &conn.id.to_string(),
+            &conn.name,
+            conn.description.as_deref(),
+            &conn.discord_client_id,
+            conn.discord_guild_id.as_deref(),
+            conn.discord_guild_name.as_deref(),
+            &channels_json,
+            &conn.gr_oauth_url,
+            &conn.gr_api_base_url,
+            &conn.discord_bot_token.ciphertext,
+            &conn.discord_bot_token.nonce,
+            &conn.discord_client_secret.ciphertext,
+            &conn.discord_client_secret.nonce,
+            &conn.gr_client_id.ciphertext,
+            &conn.gr_client_id.nonce,
+            &conn.gr_client_secret.ciphertext,
+            &conn.gr_client_secret.nonce,
+        ).await.map_err(|e| bridge_core::error::BridgeError::Database(e))?;
+        Ok(())
+    }
+
+    async fn update_connector(&self, conn: &bridge_core::types::EncryptedConnector) -> Result<(), bridge_core::error::BridgeError> {
+        let channels_json = serde_json::to_string(&conn.selected_channel_ids).unwrap_or_default();
+        let health_status_str = match conn.health_status {
+            bridge_core::types::HealthStatus::Online => "online",
+            bridge_core::types::HealthStatus::Error => "error",
+            bridge_core::types::HealthStatus::Offline => "offline",
+        };
+        sqlx::query(
+            r#"UPDATE connectors
+               SET name = ?, description = ?,
+                   discord_bot_token_enc = ?, discord_bot_token_nonce = ?,
+                   discord_client_id = ?,
+                   discord_client_secret_enc = ?, discord_client_secret_nonce = ?,
+                   discord_guild_id = ?, discord_guild_name = ?,
+                   selected_channel_ids = ?,
+                   gr_client_id_enc = ?, gr_client_id_nonce = ?,
+                   gr_client_secret_enc = ?, gr_client_secret_nonce = ?,
+                   gr_oauth_url = ?, gr_api_base_url = ?,
+                   enabled = ?, health_status = ?, last_error = ?,
+                   total_archived = ?, failed_count = ?, success_rate = ?,
+                   last_archived_at = ?, updated_at = datetime('now')
+               WHERE id = ?"#
+        )
+        .bind(&conn.name)
+        .bind(&conn.description)
+        .bind(&conn.discord_bot_token.ciphertext)
+        .bind(&conn.discord_bot_token.nonce)
+        .bind(&conn.discord_client_id)
+        .bind(&conn.discord_client_secret.ciphertext)
+        .bind(&conn.discord_client_secret.nonce)
+        .bind(&conn.discord_guild_id)
+        .bind(&conn.discord_guild_name)
+        .bind(&channels_json)
+        .bind(&conn.gr_client_id.ciphertext)
+        .bind(&conn.gr_client_id.nonce)
+        .bind(&conn.gr_client_secret.ciphertext)
+        .bind(&conn.gr_client_secret.nonce)
+        .bind(&conn.gr_oauth_url)
+        .bind(&conn.gr_api_base_url)
+        .bind(i64::from(conn.enabled))
+        .bind(health_status_str)
+        .bind(&conn.last_error)
+        .bind(conn.total_archived as i64)
+        .bind(conn.failed_count as i64)
+        .bind(conn.success_rate)
+        .bind(conn.last_archived_at.map(|dt| dt.to_rfc3339()))
+        .bind(&conn.id.to_string())
+        .execute(&self.pool)
+        .await
+        .map_err(|e| bridge_core::error::BridgeError::Database(e))?;
+        Ok(())
+    }
+
+    async fn delete_connector(&self, id: &bridge_core::types::ConnectorId) -> Result<(), bridge_core::error::BridgeError> {
+        self.delete_connector(&id.to_string()).await
+            .map_err(|e| bridge_core::error::BridgeError::Database(e))?;
+        Ok(())
+    }
+
+    async fn get_analytics_summary(&self) -> Result<bridge_core::types::AnalyticsSummary, bridge_core::error::BridgeError> {
+        let r = self.get_analytics_summary().await
+            .map_err(|e| bridge_core::error::BridgeError::Database(e))?;
+        Ok(bridge_core::types::AnalyticsSummary {
+            total_archived: r.total_archived as u64,
+            active_connections: r.active_count as u64,
+            overall_success_rate: r.overall_success_rate,
+            archived_today: r.archived_today as u64,
+        })
+    }
+
+    async fn get_connector_analytics(&self, id: &bridge_core::types::ConnectorId) -> Result<bridge_core::types::ConnectorAnalytics, bridge_core::error::BridgeError> {
+        let r = self.get_connector_analytics(&id.to_string(), 30).await
+            .map_err(|e| bridge_core::error::BridgeError::Database(e))?;
+        
+        let conn_opt = self.get_connector(&id.to_string()).await
+            .map_err(|e| bridge_core::error::BridgeError::Database(e))?;
+
+        let (total_archived, failed_count, success_rate) = if let Some(c) = conn_opt {
+            (c.total_archived as u64, c.failed_count as u64, c.success_rate)
+        } else {
+            (0, 0, 0.0)
+        };
+
+        Ok(bridge_core::types::ConnectorAnalytics {
+            connector_id: *id,
+            total_archived,
+            failed_count,
+            success_rate,
+            daily_volume: r.into_iter().map(|dv| {
+                bridge_core::types::DailyVolume {
+                    date: chrono::NaiveDate::parse_from_str(&dv.date, "%Y-%m-%d")
+                        .unwrap_or_else(|_| chrono::Utc::now().date_naive()),
+                    count: dv.count as u64,
+                }
+            }).collect(),
+        })
     }
 }

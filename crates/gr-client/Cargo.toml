@@ -16,3 +16,5 @@ bridge-core = { path = "../bridge-core" }
 
 [dev-dependencies]
 wiremock.workspace = true
+uuid.workspace = true
+tokio = { workspace = true }

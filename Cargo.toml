@@ -31,7 +31,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 
 # HTTP client
-reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", features = ["json", "default-tls"] }
 
 # Database
 sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "migrate"] }
@@ -42,7 +42,7 @@ aes-gcm = "0.10"
 keyring = "3"
 
 # Discord
-serenity = "0.12"
+serenity = { version = "0.12", default-features = false, features = ["client", "gateway", "http", "model", "cache", "native_tls_backend"] }
 
 # UUID
 uuid = { version = "1", features = ["v4", "serde"] }

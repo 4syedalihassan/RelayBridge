@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
-  "productName": "Discord GR Bridge",
+  "productName": "RelayBridge",
   "version": "0.1.0",
-  "identifier": "com.discord-gr.bridge",
+  "identifier": "com.relaybridge.app",
   "build": {
     "frontendDist": "../packages/desktop-ui/dist",
     "devUrl": "http://localhost:5173",
@@ -13,27 +13,37 @@
     "windows": [
       {
         "label": "main",
-        "title": "Discord → Global Relay Bridge",
+        "title": "RelayBridge",
         "width": 1200,
         "height": 800,
         "minWidth": 900,
         "minHeight": 600,
         "resizable": true,
         "fullscreen": false,
-        "center": true
+        "center": true,
+        "visible": false
+      },
+      {
+        "label": "splashscreen",
+        "title": "RelayBridge",
+        "width": 500,
+        "height": 400,
+        "resizable": false,
+        "fullscreen": false,
+        "decorations": false,
+        "transparent": true,
+        "center": true,
+        "alwaysOnTop": true,
+        "visible": true
       }
     ],
     "security": {
       "csp": null
-    },
-    "trayIcon": {
-      "iconPath": "icons/icon.png",
-      "iconAsTemplate": true
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["msi"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

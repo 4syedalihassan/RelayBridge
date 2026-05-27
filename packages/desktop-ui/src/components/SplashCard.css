@@ -1,0 +1,87 @@
+/* Transparent viewport surrounding the card */
+.splash-screen {
+  width: 100vw;
+  height: 100vh;
+  background-color: transparent !important; /* Force transparent desktop overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', -apple-system, sans-serif;
+  margin: 0;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Flat, solid, 100% opaque corporate card (no blur, no glows, no shadows) */
+.splash-card {
+  width: 400px;
+  background-color: #1e293b; /* Solid Opaque Slate 800 */
+  border: 1px solid #334155; /* Slate 700 outline */
+  border-radius: 8px; /* Clean corners */
+  padding: 32px;
+  text-align: center;
+  box-shadow: none !important; /* Strictly no shadows */
+}
+
+/* Logo container styling */
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+/* Typography styles */
+.splash-title {
+  color: #f8fafc; /* Slate 50 */
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+}
+
+.splash-subtitle {
+  color: #94a3b8; /* Slate 400 */
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin: 0 0 40px 0;
+}
+
+/* Flat progress loader */
+.progress-section {
+  width: 100%;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 4px;
+  background-color: #334155; /* Slate 700 */
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #eab308; /* Flat Warm Gold */
+  border-radius: 2px;
+  transition: width 0.05s linear; /* Smooth progress bar slide */
+}
+
+.progress-status-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-text {
+  color: #64748b; /* Slate 500 */
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.version-text {
+  color: #64748b; /* Slate 500 */
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}

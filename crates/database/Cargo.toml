@@ -13,6 +13,7 @@ tracing.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 sqlx.workspace = true
+async-trait.workspace = true
 bridge-core = { path = "../bridge-core" }
 
 [dev-dependencies]

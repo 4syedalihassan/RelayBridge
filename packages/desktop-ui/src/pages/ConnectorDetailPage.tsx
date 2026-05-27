@@ -11,21 +11,26 @@ export function ConnectorDetailPage() {
   const [analytics, setAnalytics] = useState<ConnectorAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const load = async () => {
+  const load = async (showLoading = false) => {
     if (!id) return
+    if (showLoading) setLoading(true)
     try {
       const [c, a] = await Promise.all([bridge.getConnector(id), bridge.getConnectorAnalytics(id)])
       setConnector(c); setAnalytics(a)
     } catch (e) { console.error(e) }
-    finally { setLoading(false) }
+    finally { if (showLoading) setLoading(false) }
   }
 
-  useEffect(() => { load() }, [id])
+  useEffect(() => {
+    load(true);
+    const interval = setInterval(() => load(false), 3000);
+    return () => clearInterval(interval);
+  }, [id])
 
   const handleToggle = async () => {
     if (!connector) return
     await bridge.toggleConnector(connector.id, !connector.enabled)
-    load()
+    load(false)
   }
 
   const handleDelete = async () => {

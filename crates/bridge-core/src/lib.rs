@@ -1,14 +1,19 @@
 //! Bridge Core — shared types, configuration, error handling, and encryption.
 
 pub mod config;
+pub mod db;
+pub mod discord;
 pub mod encryption;
 pub mod error;
 pub mod in_process;
 pub mod manager;
 pub mod state;
 pub mod types;
+pub mod transport;
 
 pub use config::AppConfig;
+pub use db::BridgeDb;
+pub use discord::DiscordService;
 pub use encryption::EncryptionService;
 pub use error::{BridgeError, BridgeResult};
 pub use in_process::InProcessManager;
@@ -50,7 +55,7 @@ impl std::fmt::Debug for SecretString {
 }
 
 /// Encrypted data stored at rest: ciphertext + nonce.
-#[derive(serde::Serialize, serde::Deserialize, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct Encrypted {
     pub ciphertext: Vec<u8>,
     pub nonce: Vec<u8>,

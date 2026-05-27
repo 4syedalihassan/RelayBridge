@@ -3,7 +3,7 @@
 //! `BridgeState` is wrapped in `Arc<RwLock<...>>` so it can be accessed
 //! from multiple tokio tasks simultaneously (Tauri commands, health checks, etc.)
 
-use crate::{AppConfig, EncryptionService};
+use crate::{AppConfig, EncryptionService, ConnectorId};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -23,6 +23,15 @@ pub struct BridgeState {
     /// Encryption service for credentials.
     pub encryption: Arc<EncryptionService>,
 
+    /// The active SQLite database.
+    pub db: Option<Arc<dyn crate::db::BridgeDb>>,
+
+    /// Discord API service for wizard.
+    pub discord: Option<Arc<dyn crate::DiscordService>>,
+
+    /// Channel to signal starting/stopping bridge instances to the main process loop.
+    pub bridge_toggle_tx: Option<tokio::sync::mpsc::UnboundedSender<(ConnectorId, bool)>>,
+
     /// Map of connector_id → running bridge handle.
     /// An entry only exists when the bridge is actively running.
     pub running_bridges: HashMap<String, RunningBridgeHandle>,
@@ -38,10 +47,18 @@ pub struct RunningBridgeHandle {
 }
 
 impl BridgeState {
-    pub fn new(config: AppConfig, encryption: Arc<EncryptionService>) -> Self {
+    pub fn new(
+        config: AppConfig,
+        encryption: Arc<EncryptionService>,
+        db: Option<Arc<dyn crate::db::BridgeDb>>,
+        discord: Option<Arc<dyn crate::DiscordService>>,
+    ) -> Self {
         Self {
             config,
             encryption,
+            db,
+            discord,
+            bridge_toggle_tx: None,
             running_bridges: HashMap::new(),
         }
     }

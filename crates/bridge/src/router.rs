@@ -25,33 +25,49 @@ impl EventRouter {
 
     /// Transform a `BridgeEvent` into an `ArchiveRequest` and push it onto the queue.
     pub async fn route(&self, event: BridgeEvent, channel_name: &str) {
-        tracing::debug!(
-            connector_id = %self.connector_id,
-            message_id = %event.message_id,
-            channel_name,
-            "Routing Discord message to archive queue"
-        );
+        match event {
+            BridgeEvent::MessageCreated {
+                message_id,
+                channel_id,
+                guild_id,
+                author_name,
+                content,
+                ..
+            } => {
+                tracing::debug!(
+                    connector_id = %self.connector_id,
+                    message_id = %message_id,
+                    channel_name,
+                    "Routing Discord message to archive queue"
+                );
 
-        let archive_req = ArchiveRequest {
-            channel_id: event.channel_id,
-            guild_id: event.guild_id,
-            channel_name: channel_name.to_string(),
-            guild_name: self.guild_name.clone(),
-            message_id: event.message_id,
-            author_name: event.author_name,
-            author_email: event.author_email,
-            content: event.content,
-            timestamp_ms: event.timestamp_ms,
-        };
+                let timestamp_ms = chrono::Utc::now().timestamp_millis();
 
-        let item = QueueItem {
-            connector_id: self.connector_id.clone(),
-            archive_req,
-            attempts: 0,
-            max_retries: 5,
-            next_attempt_at: Instant::now(),
-        };
+                let archive_req = ArchiveRequest {
+                    channel_id,
+                    guild_id,
+                    channel_name: channel_name.to_string(),
+                    guild_name: self.guild_name.clone(),
+                    message_id,
+                    author_name,
+                    author_email: None,
+                    content,
+                    timestamp_ms,
+                };
 
-        self.queue.enqueue(item).await;
+                let item = QueueItem {
+                    connector_id: self.connector_id.clone(),
+                    archive_req,
+                    attempts: 0,
+                    max_retries: 5,
+                    next_attempt_at: Instant::now(),
+                };
+
+                self.queue.enqueue(item).await;
+            }
+            _ => {
+                tracing::debug!("Ignoring unhandled Discord event type");
+            }
+        }
     }
 }

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, PlugZap, BarChart3, Settings, Zap } from 'lucide-react'
+import { LayoutDashboard, PlugZap, BarChart3, Settings } from 'lucide-react'
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -23,16 +23,16 @@ export function Layout() {
       }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 4px', marginBottom: 32 }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 8,
-            background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Zap size={16} color="white" />
-          </div>
+          {/* RelayBridge shield logo — identical to splash screen */}
+          <svg width="32" height="32" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 22 L168 52 V112 C168 156 100 180 100 180 C100 180 32 156 32 112 V52 Z" fill="#1e3a8a" />
+            <path d="M 54,83 C 70,74 132,74 148,83 C 132,92 70,92 54,83 Z" fill="#e6a817" />
+            <path d="M 52,103 C 68,94 134,94 150,103 C 134,112 68,112 52,103 Z" fill="#e6a817" />
+            <path d="M 58,123 C 72,114 130,114 144,123 C 130,132 72,132 58,123 Z" fill="#e6a817" />
+          </svg>
           <div>
-            <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#e2e8f0' }}>Discord GR</div>
-            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Bridge v0.1</div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#e2e8f0' }}>RelayBridge</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>v0.1.0</div>
           </div>
         </div>
 

@@ -49,6 +49,7 @@ impl BridgeInstance {
         channel_ids: Vec<String>,
         gr_client: Arc<GrClient>,
         guild_name: String,
+        db: Arc<database::Database>,
     ) -> BridgeResult<Self> {
         tracing::info!(connector_id = %connector_id, "Starting bridge instance");
 
@@ -85,10 +86,22 @@ impl BridgeInstance {
         let queue_clone = Arc::clone(&queue);
         let gr_clone = Arc::clone(&gr_client);
         let cid = connector_id.clone();
+        let db_clone = Arc::clone(&db);
         let queue_handle = tokio::spawn(async move {
             loop {
                 if let Some(item) = queue_clone.dequeue_ready().await {
+                    let message_id = item.archive_req.message_id.clone();
+                    let channel_id = item.archive_req.channel_id.clone();
                     let result = gr_clone.archive(item.archive_req).await;
+
+                    // Fetch current connector stats from DB to increment correctly
+                    let mut total_archived = 0;
+                    let mut failed_count = 0;
+                    if let Ok(Some(conn)) = db_clone.get_connector(&cid).await {
+                        total_archived = conn.total_archived;
+                        failed_count = conn.failed_count;
+                    }
+
                     match result {
                         Ok(resp) => {
                             tracing::info!(
@@ -96,10 +109,62 @@ impl BridgeInstance {
                                 reconciliation_id = ?resp.reconciliation_id,
                                 "Message archived successfully"
                             );
+
+                            total_archived += 1;
+                            let success_rate = if total_archived + failed_count > 0 {
+                                total_archived as f64 / (total_archived + failed_count) as f64
+                            } else {
+                                1.0
+                            };
+                            let now_str = chrono::Utc::now().to_rfc3339();
+
+                            // 1. Update stats in database
+                            let _ = db_clone.update_connector_stats(
+                                &cid,
+                                total_archived,
+                                failed_count,
+                                success_rate,
+                                Some(&now_str),
+                            ).await;
+
+                            // 2. Create successful archive log in database
+                            let _ = db_clone.create_archive_log(
+                                &cid,
+                                Some(&message_id),
+                                Some(&channel_id),
+                                resp.reconciliation_id.as_deref(),
+                                "success",
+                                None,
+                            ).await;
                         }
                         Err(e) => {
                             tracing::error!(connector_id = %cid, error = %e, "Archive failed");
-                            // GrClient::archive already retries 3× internally.
+
+                            failed_count += 1;
+                            let success_rate = if total_archived + failed_count > 0 {
+                                total_archived as f64 / (total_archived + failed_count) as f64
+                            } else {
+                                1.0
+                            };
+
+                            // 1. Update stats in database
+                            let _ = db_clone.update_connector_stats(
+                                &cid,
+                                total_archived,
+                                failed_count,
+                                success_rate,
+                                None,
+                            ).await;
+
+                            // 2. Create failed archive log in database
+                            let _ = db_clone.create_archive_log(
+                                &cid,
+                                Some(&message_id),
+                                Some(&channel_id),
+                                None,
+                                "failed",
+                                Some(&e.to_string()),
+                            ).await;
                         }
                     }
                 } else {
@@ -117,6 +182,27 @@ impl BridgeInstance {
         ));
         let (status_tx, health_status) = watch::channel(HealthStatus::Offline);
         let health_handle = Arc::clone(&health).start_background_check(status_tx);
+
+        // ── Health database synchronizer task ────────────────────────────────
+        let db_health_clone = Arc::clone(&db);
+        let cid_health = connector_id.clone();
+        let mut health_rx_clone = health_status.clone();
+        tokio::spawn(async move {
+            loop {
+                let status = health_rx_clone.borrow().clone();
+                let status_str = match status {
+                    HealthStatus::Online => "online",
+                    HealthStatus::Offline => "offline",
+                    HealthStatus::Error => "error",
+                };
+                let _ = db_health_clone.update_connector_health(&cid_health, status_str, None).await;
+
+                if health_rx_clone.changed().await.is_err() {
+                    // Transmitter dropped — stop.
+                    break;
+                }
+            }
+        });
 
         Ok(Self {
             connector_id,

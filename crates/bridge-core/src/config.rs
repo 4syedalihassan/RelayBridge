@@ -35,10 +35,10 @@ impl Default for AppConfig {
 fn get_default_db_path() -> String {
     #[cfg(target_os = "windows")]
     {
-        if let Some(appdata) = std::env::var_os("APPDATA") {
+        if let Some(programdata) = std::env::var_os("ProgramData") {
             return format!(
                 "{}\\DiscordGR\\discord-gr.db",
-                appdata.to_string_lossy()
+                programdata.to_string_lossy()
             );
         }
     }
